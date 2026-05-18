@@ -168,8 +168,21 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         @Test
         @DisplayName("should handle deleting a book")
         void shouldDeleteBook() {
-            // TODO: Save a book, delete it, verify it's gone
-            fail("Not implemented yet");
+            Book saved = createBook(
+                    "978-delete-1",
+                    "Book To Delete",
+                    "Delete Author",
+                    2,
+                    Genre.FICTION
+            );
+
+            Long bookId = saved.getId();
+
+            bookRepository.delete(saved);
+            bookRepository.flush();
+
+            Optional<Book> found = bookRepository.findById(bookId);
+            assertThat(found).isEmpty();
         }
     }
 }
