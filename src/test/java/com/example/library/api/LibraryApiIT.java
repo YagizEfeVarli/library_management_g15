@@ -340,20 +340,21 @@ class LibraryApiIT extends AbstractIntegrationTest {
         @DisplayName("should get active borrows for a member")
         void shouldGetActiveBorrows() {
             Member member = createTestMember("Borrower", "borrower@test.com", MembershipType.STANDARD);
-            Book book1 = createTestBook("active-1", "Active Book", "Author");
-            Book book2 = createTestBook("active-2", "Returned Book", "Author");
 
-            ResponseEntity<Map> borrow1 = restTemplate.postForEntity(
+            Book activeBook = createTestBook("active-1", "Active Book", "Author");
+            Book returnedBook = createTestBook("active-2", "Returned Book", "Author");
+
+            ResponseEntity<Map> activeBorrowResponse = restTemplate.postForEntity(
                     baseUrl + "/borrows",
-                    new BorrowRequest(book1.getId(), member.getId()),
+                    new BorrowRequest(activeBook.getId(), member.getId()),
                     Map.class);
 
-            ResponseEntity<Map> borrow2 = restTemplate.postForEntity(
+            ResponseEntity<Map> returnedBorrowResponse = restTemplate.postForEntity(
                     baseUrl + "/borrows",
-                    new BorrowRequest(book2.getId(), member.getId()),
+                    new BorrowRequest(returnedBook.getId(), member.getId()),
                     Map.class);
 
-            Number returnedBorrowId = (Number) borrow2.getBody().get("id");
+            Number returnedBorrowId = (Number) returnedBorrowResponse.getBody().get("id");
 
             restTemplate.postForEntity(
                     baseUrl + "/borrows/" + returnedBorrowId.longValue() + "/return",
@@ -368,6 +369,7 @@ class LibraryApiIT extends AbstractIntegrationTest {
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody()).hasSize(1);
             assertThat(response.getBody()[0]).containsEntry("bookTitle", "Active Book");
+            assertThat(response.getBody()[0]).containsEntry("status", "BORROWED");
         }
     }
 }
