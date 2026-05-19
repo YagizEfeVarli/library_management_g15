@@ -185,7 +185,7 @@ class LibraryApiIT extends AbstractIntegrationTest {
     }
 
     // =========================================================================
-    // TODO: Students should write these API tests
+
     // =========================================================================
 
     @Nested
