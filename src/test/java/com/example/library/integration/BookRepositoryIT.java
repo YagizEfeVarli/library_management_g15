@@ -114,7 +114,6 @@ class BookRepositoryIT extends AbstractIntegrationTest {
     }
 
     // =========================================================================
-    // TODO: Students should write these integration tests
     // =========================================================================
 
     @Nested
