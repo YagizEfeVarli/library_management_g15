@@ -1,5 +1,6 @@
 package com.example.library.integration;
-
+import org.springframework.dao.DataIntegrityViolationException;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.example.library.model.Book;
 import com.example.library.model.Genre;
 import com.example.library.repository.BookRepository;
@@ -123,32 +124,53 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         @Test
         @DisplayName("should find books by genre")
         void shouldFindByGenre() {
-            // TODO: Save books of different genres
-            //       Query by Genre.SCIENCE and verify only matching books are returned
-            fail("Not implemented yet");
+            createBook("978-1", "Science Book 1", "Author A", 3, Genre.SCIENCE);
+            createBook("978-2", "Science Book 2", "Author B", 2, Genre.SCIENCE);
+            createBook("978-3", "Fiction Book", "Author C", 5, Genre.FICTION);
+
+            List<Book> results = bookRepository.findByGenre(Genre.SCIENCE);
+
+            assertThat(results).hasSize(2);
+            assertThat(results).extracting(Book::getGenre)
+                    .containsOnly(Genre.SCIENCE);
         }
 
         @Test
         @DisplayName("should find books by author (case insensitive, partial match)")
         void shouldFindByAuthor() {
-            // TODO: Save books by different authors
-            //       Search by partial author name and verify results
-            fail("Not implemented yet");
+            createBook("978-1", "Book One", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            createBook("978-2", "Book Two", "Martin Fowler", 2, Genre.TECHNOLOGY);
+            createBook("978-3", "Book Three", "Gang of Four", 5, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.findByAuthorContainingIgnoreCase("martin");
+
+            assertThat(results).hasSize(2);
+            assertThat(results).extracting(Book::getAuthor)
+                    .containsExactlyInAnyOrder("Robert C. Martin", "Martin Fowler");
         }
 
         @Test
         @DisplayName("should search by author name using searchBooks()")
         void shouldSearchByAuthorKeyword() {
-            // TODO: Use searchBooks() with an author name as keyword
-            //       Verify it finds books by that author
-            fail("Not implemented yet");
+            createBook("978-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            createBook("978-2", "Refactoring", "Martin Fowler", 2, Genre.TECHNOLOGY);
+            createBook("978-3", "Design Patterns", "Gang of Four", 5, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.searchBooks("fowler");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).getTitle()).isEqualTo("Refactoring");
+            assertThat(results.get(0).getAuthor()).isEqualTo("Martin Fowler");
         }
 
         @Test
         @DisplayName("should return empty list when no books match search")
         void shouldReturnEmpty_WhenNoMatch() {
-            // TODO: Search for a keyword that matches nothing
-            fail("Not implemented yet");
+            createBook("978-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.searchBooks("nonexistent");
+
+            assertThat(results).isEmpty();
         }
     }
 
@@ -159,10 +181,13 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         @Test
         @DisplayName("should enforce unique ISBN constraint")
         void shouldEnforceUniqueIsbn() {
-            // TODO: Try to save two books with the same ISBN
-            //       Verify a DataIntegrityViolationException is thrown
-            //       Hint: Use assertThrows() and flush the persistence context
-            fail("Not implemented yet");
+            createBook("978-same", "First Book", "Author A", 3, Genre.FICTION);
+
+            Book duplicate = new Book("978-same", "Second Book", "Author B", 2, Genre.SCIENCE);
+
+            assertThrows(DataIntegrityViolationException.class, () -> {
+                bookRepository.saveAndFlush(duplicate);
+            });
         }
 
         @Test
